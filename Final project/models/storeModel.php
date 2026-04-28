@@ -1,6 +1,6 @@
 <?php
-class storeModel{
-    private $id, $name $created_at;
+class storeModel {
+    private $id, $name, $created_at;
 
     public function __construct($id, $name, $created_at) {
         $this->set_id($id);
@@ -8,14 +8,15 @@ class storeModel{
         $this->set_created_at($created_at);
     }
 
+
     public function set_id($id){
-        this->id = $id;
+        $this->id = $id;
     }
     public function set_name($name){
-        this->id = $id;
+        $this->id = $id;
     }
     public function set_created_at($created_at){
-        this->created_at = $created_at;
+        $this->created_at = $created_at;
     }
     public function get_id(){
         return $this->id;
@@ -29,28 +30,31 @@ class storeModel{
     public function get_created_at(){
         return $this->created_at;
     }
-    
         function list_stores() {
     global $database;
 
-    $query = 'SELECT id, name, quantity, checked, created_at FROM stores';
+    $query = 'SELECT id, name, created_at FROM stores';
     $statement = $database->prepare($query);
-
     $statement->execute();
     $rows = $statement->fetchAll();
     $statement->closeCursor();
 
-    $store_array = array();
+    return $rows;
+}
+function list_items_by_store($store_id) {
+    global $database;
 
-    foreach ($rows as $row) {
-        $store_array[] = new storeModel(
-                $row['id'],
-                $row['name'],
-                $row['created_at']
-        );
-    }
+    $query = 'SELECT id, store_id, name, quantity, checked, created_at
+              FROM items
+              WHERE store_id = :store_id';
 
-    return $store_array;
+    $statement = $database->prepare($query);
+    $statement->bindValue(':store_id', $store_id);
+    $statement->execute();
+    $rows = $statement->fetchAll();
+    $statement->closeCursor();
+
+    return $rows;
 }
     function insert_store($store) {
     global $database;

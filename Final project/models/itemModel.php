@@ -4,8 +4,9 @@ class itemModel {
 
     private $id, $store_id, $name, $quantity, $checked, $created_at;
 
-    public function __construct($id, $name, $quantity, $checked, $created_at) {
+    public function __construct($id, $name, $store_id, $quantity, $checked, $created_at) {
         $this->set_id($id);
+        $this->set_store_id = $store_id;
         $this->set_name($name);
         $this->set_quantity($quantity);
         $this->set_checked($checked);
@@ -29,6 +30,9 @@ class itemModel {
     }
     public function get_id(){
         return $this->id;
+    }
+    public function get_store_id(){ 
+        return $this->store_id; 
     }
     public function get_name(){
         return $this->name;
