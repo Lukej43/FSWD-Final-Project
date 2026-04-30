@@ -53,21 +53,30 @@ switch ($method) {
             $stmt->bindValue(':id', $_GET['id']);
             $stmt->execute();
 
-            echo json_encode(["message" => "Store and its items deleted"]);
+            echo json_encode(["message" => "Store deleted"]);
         }
         break;
 
     case 'PUT':
-        if ($path === 'items' && isset($_GET['id'])) {
-            $stmt = $database->prepare(
-                "UPDATE items SET checked = :checked WHERE id = :id"
-            );
-            $stmt->bindValue(':id', $_GET['id']);
-            $stmt->bindValue(':checked', $data['checked']);
-            $stmt->execute();
-            echo json_encode(["message" => "Item updated"]);
-        }
-        break;
+    if ($path === 'items' && isset($_GET['id'])) {
+        $stmt = $database->prepare(
+            "UPDATE items
+             SET checked = :checked,
+                 name = :name,
+                 quantity = :quantity
+             WHERE id = :id"
+        );
+
+        $stmt->bindValue(':id', $_GET['id']);
+        $stmt->bindValue(':checked', $data['checked']);
+        $stmt->bindValue(':name', $data['name']);
+        $stmt->bindValue(':quantity', $data['quantity']);
+
+        $stmt->execute();
+
+        echo json_encode(["message" => "Item updated"]);
+    }
+    break;
 
     default:
         echo json_encode(["error" => "Invalid request"]);
