@@ -1,7 +1,8 @@
 <?php
-require_once '../models/database.php';
+require_once 'database.php';
 
 header('Content-Type: application/json');
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_GET['path'] ?? '';
