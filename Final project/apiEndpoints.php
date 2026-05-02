@@ -1,8 +1,16 @@
 <?php
+
+
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Content-Type: application/json");
+
 require_once 'database.php';
 
-header('Content-Type: application/json');
-
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+    exit;
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_GET['path'] ?? '';
@@ -12,8 +20,8 @@ $data = json_decode(file_get_contents("php://input"), true);
 switch ($method) {
 
     case 'GET':
-        if ($path === 'stores') {
-            $stmt = $database->query("SELECT * FROM stores");
+        if ($path === 'store') {
+            $stmt = $database->query("SELECT * FROM store");
             echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
         } else if ($path === 'items' && isset($_GET['store_id'])) {
             $stmt = $database->prepare("SELECT * FROM items WHERE store_id = :id");
@@ -21,11 +29,17 @@ switch ($method) {
             $stmt->execute();
             echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
         }
+        else if ($path === 'items') {
+
+        $stmt = $database->query("SELECT * FROM items");
+        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+
+    }
         break;
 
     case 'POST':
-        if ($path === 'stores') {
-            $stmt = $database->prepare("INSERT INTO stores (name) VALUES (:name)");
+        if ($path === 'store') {
+            $stmt = $database->prepare("INSERT INTO store (name) VALUES (:name)");
             $stmt->bindValue(':name', $data['name']);
             $stmt->execute();
             echo json_encode(["message" => "Store added"]);
@@ -48,9 +62,9 @@ switch ($method) {
             $stmt->bindValue(':id', $_GET['id']);
             $stmt->execute();
             echo json_encode(["message" => "Item deleted"]);
-        } else if ($path === 'stores' && isset($_GET['id'])) {
+        } else if ($path === 'store' && isset($_GET['id'])) {
 
-            $stmt = $database->prepare("DELETE FROM stores WHERE id = :id");
+            $stmt = $database->prepare("DELETE FROM store WHERE id = :id");
             $stmt->bindValue(':id', $_GET['id']);
             $stmt->execute();
 
