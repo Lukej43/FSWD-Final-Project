@@ -7,6 +7,7 @@ function App() {
 
   const [selectedStoreId, setSelectedStoreId] = useState(null);
   const [items, setItems] = useState([]);
+  const [allItems, setAllItems] = useState([]);
   const [itemName, setItemName] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -20,14 +21,20 @@ function App() {
 
   useEffect(() => {
     loadStores();
+    loadAllItemsOnList();
   }, []);
 
-  function loadItems(storeId) {
+  function loadItemsInStore(storeId) {
   setSelectedStoreId(storeId);
 
   fetch(`${API}?path=items&store_id=${storeId}`)
     .then(res => res.json())
     .then(data => setItems(data));
+}
+  function loadAllItemsOnList() {
+  fetch(`${API}?path=items`)
+    .then(res => res.json())
+    .then(data => setAllItems(data));
 }
 
 function addStore() {
@@ -48,6 +55,7 @@ function addStore() {
 
       setStoreName("");
       loadStores();
+      loadAllItemsOnList();
     });
 }
 
@@ -70,7 +78,8 @@ function addItem() {
       setItemName("");
       setQuantity(1);
 
-      loadItems(selectedStoreId);
+      loadItemsInStore(selectedStoreId);
+      loadAllItemsOnList();
     });
 }
 
@@ -88,20 +97,19 @@ function addItem() {
     });
 }
 
-function deleteItem(id){
-
-    fetch(`${API}?path=items&id=${id}`, {
-      method: "DELETE"
+function deleteItem(id) {
+  fetch(`${API}?path=items&id=${id}`, {
+    method: "DELETE"
   })
     .then(res => res.json())
     .then(data => {
-
       console.log(data);
 
-      loadItems();
+      loadItemsInStore(selectedStoreId);
+      loadAllItemsOnList();
     });
 }
-function addItemToList(item) {
+function toggleItemChecked(item) {
   fetch(`${API}?path=items&id=${item.id}`, {
     method: "PUT",
     headers: {
@@ -116,81 +124,134 @@ function addItemToList(item) {
     .then(res => res.json())
     .then(data => {
       console.log(data);
-      loadItems(selectedStoreId);
+
+      loadItemsInStore(selectedStoreId);
+      loadAllItemsOnList();
     });
 }
 
-  return (
-    <div>
+function getStoreName(storeId) {
+  const store = stores.find(s => s.id == storeId);
+  return store ? store.name : "";
+}
 
-      <h1>Shopping Lists</h1>
+return (
+  <div className="app">
+    <h1>Shopping</h1>
 
-      <input
-        type="text"
-        value={storeName}
-        onChange={(e) => setStoreName(e.target.value)}
-        placeholder="Store name"
-      />
+    <div className="columns">
 
-      <button onClick={addStore}>
-        Add Store
-      </button>
+      <div className="panel">
+        <h2>List</h2>
 
-      {stores.map(store => (
-        <div key={store.id}>
+        {stores.map(store => {
+          const checkedItems = allItems.filter(
+            item => item.store_id == store.id && item.checked == 1
+          );
 
-          <h2 onClick={() => loadItems(store.id)}>
-            {store.name}
-          </h2>
+          if (checkedItems.length === 0) return null;
 
-          <button onClick={() => deleteStore(store.id)}>
-          Delete
-          </button>
-
-        </div>
-      ))}
-      {selectedStoreId && (
-  <div>
-
-    <h2>Items</h2>
-
-    <input
-      type="text"
-      value={itemName}
-      onChange={(e) => setItemName(e.target.value)}
-      placeholder="Item name"
-    />
-
-    <input
-      type="number"
-      value={quantity}
-      onChange={(e) => setQuantity(e.target.value)}
-      min="1"
-    />
-
-    <button onClick={addItem}>
-      Add Item
-    </button>
-
-
-
-    {items.map(item => (
-      <div key={item.id}>f
-        {item.name} - Qty: {item.quantity}
-            <button onClick={() => deleteItem(item.id)}>
-            delete Item
-            </button>
-            <button onClick={() => addItemToList(item)}>
-          add to list
-          </button>
+          return (
+            <div key={store.id}>
+              <h3>{store.name}</h3>
+              <p>{checkedItems.map(item => item.name).join(", ")}</p>
+            </div>
+          );
+        })}
       </div>
-    ))}
 
-  </div>
-)}
+      <div className="panel">
+        <h2>Stores</h2>
+
+        {stores.map(store => (
+          <div key={store.id}>
+            <h3 onClick={() => loadItemsInStore(store.id)}>
+              {store.name}
+            </h3>
+          </div>
+        ))}
+
+        {selectedStoreId !== null && (
+          <div>
+            <h2>
+              Items from {
+                stores.find(store => store.id == selectedStoreId)?.name
+              }
+            </h2>
+
+            {items.map(item => (
+              <div key={item.id}>
+                {item.name} - Qty: {item.quantity}
+
+                <button onClick={() => toggleItemChecked(item)}>
+                  {item.checked == 1 ? "Remove From List" : "Add To List"}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="panel">
+        <h2>Add / Remove</h2>
+
+        <input
+          type="text"
+          value={storeName}
+          onChange={(e) => setStoreName(e.target.value)}
+          placeholder="Store name"
+        />
+
+        <button onClick={addStore}>
+          Add Store
+        </button>
+
+        <input
+          type="text"
+          value={itemName}
+          onChange={(e) => setItemName(e.target.value)}
+          placeholder="Item name"
+        />
+
+        <input
+          type="number"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          min="1"
+        />
+
+        <button onClick={addItem}>
+          Add Item
+        </button>
+
+        <h3>Delete Stores</h3>
+
+        {stores.map(store => (
+          <div key={store.id}>
+            {store.name}
+
+            <button onClick={() => deleteStore(store.id)}>
+              Delete
+            </button>
+          </div>
+        ))}
+
+        <h3>Delete Items</h3>
+
+        {items.map(item => (
+          <div key={item.id}>
+            {item.name}
+
+            <button onClick={() => deleteItem(item.id)}>
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
 
     </div>
-  );
+  </div>
+);
 }
 
 export default App;

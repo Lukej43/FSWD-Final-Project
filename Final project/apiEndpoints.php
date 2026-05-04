@@ -3,7 +3,7 @@
 
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Content-Type: application/json");
 
 require_once 'database.php';
@@ -12,12 +12,12 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit;
 }
 
-$method = $_SERVER['REQUEST_METHOD'];
+$reqMethod = $_SERVER['REQUEST_METHOD'];
 $path = $_GET['path'] ?? '';
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-switch ($method) {
+switch ($reqMethod) {
 
     case 'GET':
         if ($path === 'store') {
